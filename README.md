@@ -1,6 +1,8 @@
 ## node-hash-ring - Consistent Hashing C++ Add-on for node.js
 ---
 
+See this [blog post](http://ngchi.wordpress.com/2010/08/23/towards-auto-sharding-in-your-node-js-app/) for more information.
+
 ### Installation
     git clone http://bnoguchi@github.com/bnoguchi/node-hash-ring.git
     cd node-hash-ring/src
