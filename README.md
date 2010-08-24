@@ -16,7 +16,7 @@
     var ring = new HashRing({"127.0.0.1:8080": 1, "127.0.0.2:8080": 2, "127.0.0.3:8080":4});
     sys.log(ring.getNode("users:102") ); // Should be 127.0.0.3:8080
 
-See http://github.com/bnoguchi/node-hash-ring/test/test_distribution.js for another example:
+See [./test/test_distribution.js](http://github.com/bnoguchi/node-hash-ring/test/test_distribution.js) for another example:
     node test/test_distribution.js
 
 ### License
