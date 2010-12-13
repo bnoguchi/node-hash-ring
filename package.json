@@ -1,0 +1,14 @@
+{
+  "name" : "hashring",
+  "version" : "0.1.0",
+  "description" : "Consistent hashing based on libketama",
+  "author": "Brian Noguchi",
+  "main": "./lib/hash_ring",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bnoguchi/node-hash-ring"
+  },
+  "scripts": {
+    "install": "cd src; node-waf configure build"
+  }
+}
