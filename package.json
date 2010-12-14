@@ -1,14 +1,21 @@
 {
-  "name" : "hash_ring",
-  "version" : "0.1.0",
-  "description" : "Consistent hashing based on libketama",
-  "author": "Brian Noguchi",
-  "main": "./lib/hash_ring",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/bnoguchi/node-hash-ring"
-  },
-  "scripts": {
+  "name" : "hash_ring"
+, "version" : "0.1.0"
+, "description" : "Consistent hashing C++ Add-on for node.js"
+, "keywords": [ "node", "hash ring", "sharding", "distributed" ]
+, "author": "Brian Noguchi <brian.noguchi@gmail.com>"
+, "contributors": [
+    { "name": "Brian Noguchi", "web": "http://ngchi.wordpress.com" }
+  ]
+, "licenses": [ "MIT" ]
+, "main": "./index.js"
+, "repository": {
+    "type": "git"
+  , "url": "https://github.com/bnoguchi/node-hash-ring"
+  }
+, "bugs": { "web": "http://github.com/bnoguchi/redis-node/issues" }
+, "engines": { "node":  ">=0.2.0" }
+, "scripts": {
     "install": "cd src; node-waf configure build"
   }
 }
