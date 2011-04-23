@@ -27,6 +27,7 @@ class HashRing : public node::ObjectWrap {
 
   public:
     HashRing(v8::Local<v8::Object> weight_hash);
+    ~HashRing();
 
     static void Initialize(v8::Handle<v8::Object> target);
 

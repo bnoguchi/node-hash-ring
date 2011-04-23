@@ -91,6 +91,10 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap() {
     ring.num_points = vpoint_idx;
 }
 
+HashRing::~HashRing(){
+	delete [] ring.vpoints;
+}
+
 Handle<Value> HashRing::New(const Arguments &args) {
     HandleScope scope;
 
