@@ -2,7 +2,7 @@
   "name" : "hash_ring"
 , "version" : "0.1.0"
 , "description" : "Consistent hashing C++ Add-on for node.js"
-, "keywords": [ "node", "hash ring", "sharding", "distributed" ]
+, "keywords": [ "node", "hash ring", "consistent hashing", "sharding", "distributed" ]
 , "author": "Brian Noguchi <brian.noguchi@gmail.com>"
 , "contributors": [
     { "name": "Brian Noguchi", "web": "http://ngchi.wordpress.com" }
@@ -13,9 +13,6 @@
     "type": "git"
   , "url": "https://github.com/bnoguchi/node-hash-ring"
   }
-, "bugs": { "web": "http://github.com/bnoguchi/redis-node/issues" }
+, "bugs": { "web": "http://github.com/bnoguchi/node-hash-ring/issues" }
 , "engines": { "node":  ">=0.2.0" }
-, "scripts": {
-    "install": "cd src; node-waf configure build"
-  }
 }
