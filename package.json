@@ -1,6 +1,6 @@
 {
   "name" : "hash_ring"
-, "version" : "0.1.0"
+, "version" : "0.1.1"
 , "description" : "Consistent hashing C++ Add-on for node.js"
 , "keywords": [ "node", "hash ring", "consistent hashing", "sharding", "distributed" ]
 , "author": "Brian Noguchi <brian.noguchi@gmail.com>"
