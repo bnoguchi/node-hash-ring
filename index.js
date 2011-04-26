@@ -1,1 +1,1 @@
-module.exports = require('./lib/hash_ring');
+module.exports = require("./build/default/hash_ring").HashRing;

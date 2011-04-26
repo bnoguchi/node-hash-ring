@@ -1,9 +1,11 @@
-srcdir = '.'
-blddir = '../build'
-VERSION = '0.0.1'
+from os.path import exists
+from shutil import rmtree
 
 def set_options(ctx):
     ctx.tool_options('compiler_cxx')
+
+def clean(cln):
+  if exists('build'): rmtree('build')
 
 def configure(ctx):
     ctx.check_tool('compiler_cxx')
@@ -12,4 +14,8 @@ def configure(ctx):
 def build(ctx):
     t = ctx.new_task_gen('cxx', 'shlib', 'node_addon')
     t.target = 'hash_ring'
-    t.source = 'md5.cc hash_ring.cc module.cc'
+    t.source = [
+		'src/md5.cc',
+		'src/hash_ring.cc',
+		'src/module.cc'
+    ]
