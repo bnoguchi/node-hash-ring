@@ -1,3 +1,4 @@
-**.swp
+.*
 /build
-/src/.lock-wscript
+**.swp
+!.gitignore
