@@ -1,6 +1,6 @@
-var sys = require("sys");
+var should = require('should');
 
-var HashRing = require("../lib/hash_ring");
+var HashRing = require("../index");
 
 var nodes = {
     "127.0.0.1:8080": 1,
@@ -24,6 +24,12 @@ var genCode = function (length) {
 };
 
 var randomDistribution = function () {
+};
+
+randomDistribution();
+
+module.exports = {
+  'should be randomly distributed': function () {
     var counts = {},
         node, i, len, word;
     for (i = 0, len = nodes.length; i < len; i++) {
@@ -36,9 +42,14 @@ var randomDistribution = function () {
       counts[node] = counts[node] || 0;
       counts[node]++;
     }
+    var total = Object.keys(counts).reduce( function (sum, node) {
+      return sum += counts[node];
+    }, 0.0);
+    var delta = 0.05
+      , lower = 1.0 / 3 - 0.05
+      , upper = 1.0 / 3 + 0.05;
     for (node in counts) {
-        sys.log(node + ": " + counts[node]);
+      (counts[node] / total).should.be.within(lower, upper);
     }
+  }
 };
-
-randomDistribution();
