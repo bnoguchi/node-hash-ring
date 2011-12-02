@@ -1,1 +1,1 @@
-module.exports = require("./build/default/hash_ring").HashRing;
+module.exports = require("./build/Release/hash_ring").HashRing;
