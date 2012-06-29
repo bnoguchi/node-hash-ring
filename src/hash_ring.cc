@@ -5,12 +5,13 @@
 #include "md5.h"
 #include "hash_ring.h"
 #include <iostream>
+#include <string>
 using namespace std;
 
 using namespace v8;
 using namespace node;
 
-void HashRing::hash_digest(char *in, unsigned char out[16]) {
+void HashRing::hash_digest(const char *in, unsigned char out[16]) {
     md5_state_t md5_state;
     md5_init(&md5_state);
     md5_append(&md5_state, (unsigned char*) in, strlen(in));
@@ -65,14 +66,18 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap() {
     Vpoint *vpoint_list = new Vpoint[num_servers * 160];
     unsigned int j, k;
     int vpoint_idx = 0;
+    std::string ss;
     for (j = 0; j < num_servers; j++) {
         float percent = (float) node_list[j].weight / (float) weight_total;
         unsigned int num_replicas = floorf(percent * 40.0 * (float) num_servers);
         for (k = 0; k < num_replicas; k++) {
-            char ss[30];
-            sprintf(ss, "%s-%d", node_list[j].id, k);
+            char count_buf[23];
+            sprintf(count_buf, "%d", k);
+            ss = node_list[j].id;
+            ss += "-";
+            ss += count_buf;
             unsigned char digest[16];
-            hash_digest(ss, digest);
+            hash_digest(ss.c_str(), digest);
             int m;
             for (m = 0; m < 4; m++) {
                 vpoint_list[vpoint_idx].point = (digest[3 + m*4] << 24) |

@@ -35,7 +35,7 @@ class HashRing : public node::ObjectWrap {
     static v8::Handle<v8::Value> GetNode(const v8::Arguments &args);
 
   private:
-    static void hash_digest(char *in, unsigned char out[16]);
+    static void hash_digest(const char *in, unsigned char out[16]);
     static unsigned int hash_val(char *in);
     static int vpoint_compare(Vpoint *a, Vpoint *b);
 };
