@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/bnoguchi/node-hash-ring.png)](http://travis-ci.org/bnoguchi/node-hash-ring)
 ## node-hash-ring - Consistent Hashing C++ Add-on for node.js
 ---
 
