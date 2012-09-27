@@ -11,8 +11,14 @@ Via npm:
 Via git:
 
     git clone http://github.com/bnoguchi/node-hash-ring.git
+
+    #### node < 0.8.0
     cd node-hash-ring/src
     node-waf configure build
+
+    #### node >= 0.8.0
+    cd node-hash-ring
+    node-gyp configure build
 
 ### Example
 
