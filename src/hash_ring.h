@@ -7,7 +7,7 @@
 typedef int (*compfn)(const void*, const void*);
 
 typedef struct {
-    unsigned long int point;
+    unsigned int point;
     char* id;
 } Vpoint;
 
@@ -36,7 +36,7 @@ class HashRing : public node::ObjectWrap {
 
   private:
     static void hash_digest(char *in, unsigned char out[16]);
-    static unsigned long int hash_val(char *in);
+    static unsigned int hash_val(char *in);
     static int vpoint_compare(Vpoint *a, Vpoint *b);
 };
 

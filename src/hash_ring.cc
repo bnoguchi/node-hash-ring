@@ -17,14 +17,14 @@ void HashRing::hash_digest(char *in, unsigned char out[16]) {
     md5_finish(&md5_state, out);
 };
 
-unsigned long int HashRing::hash_val(char *in) {
+unsigned int HashRing::hash_val(char *in) {
     unsigned char digest[16];
     hash_digest(in, digest);
-    return (unsigned long int) (
-        (((unsigned long int) digest[3]) << 24) |
-        (((unsigned long int) digest[2]) << 16) |
-        (((unsigned long int) digest[1]) << 8) |
-         ((unsigned long int) digest[0])
+    return (unsigned int) (
+        (digest[3] << 24) |
+        (digest[2] << 16) |
+        (digest[1] << 8) |
+         digest[0]
     );
 }
 
@@ -47,11 +47,11 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap() {
     Local<Array> node_names = weight_hash->GetPropertyNames();
     Local<String> node_name;
     uint32_t weight, weight_total = 0;
-    unsigned long int num_servers = node_names->Length();
+    unsigned int num_servers = node_names->Length();
     
     NodeInfo *node_list = new NodeInfo[num_servers];
     // Construct the server list based on the weight hash
-    for (unsigned long int i = 0; i < num_servers; i++) {
+    for (unsigned int i = 0; i < num_servers; i++) {
         NodeInfo *node = &(node_list[i]);
         node_name = node_names->Get(i)->ToString();
         String::Utf8Value utfVal(node_name);
@@ -63,22 +63,22 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap() {
     }
 
     Vpoint *vpoint_list = new Vpoint[num_servers * 120];
-    unsigned long int j, k;
+    unsigned int j, k;
     int vpoint_idx = 0;
     for (j = 0; j < num_servers; j++) {
         float percent = (float) node_list[j].weight / (float) weight_total;
-        unsigned long int num_replicas = floorf(percent * 40.0 * (float) num_servers);
+        unsigned int num_replicas = floorf(percent * 40.0 * (float) num_servers);
         for (k = 0; k < num_replicas; k++) {
             char ss[30];
-            sprintf(ss, "%s-%ld", node_list[j].id, k);
+            sprintf(ss, "%s-%d", node_list[j].id, k);
             unsigned char digest[16];
             hash_digest(ss, digest);
             int m;
             for (m = 0; m < 3; m++) {
-                vpoint_list[vpoint_idx].point = (((unsigned long int)digest[3 + m*4]) << 24) |
-                                                (((unsigned long int)digest[2 + m*4]) << 16) |
-                                                (((unsigned long int)digest[1 + m*4]) << 8) |
-                                                 ((unsigned long int) digest[m*4]);
+                vpoint_list[vpoint_idx].point = (digest[3 + m*4] << 24) |
+                                                (digest[2 + m*4] << 16) |
+                                                (digest[1 + m*4] <<  8) |
+                                                 digest[m*4];
                 vpoint_list[vpoint_idx].id = node_list[j].id;
                 vpoint_idx++;
             }
@@ -117,12 +117,12 @@ Handle<Value> HashRing::GetNode(const Arguments &args) {
     Local<String> str = args[0]->ToString();
     String::Utf8Value utfVal(str);
     char* key = *utfVal;
-    unsigned long int h = hash_val(key);
+    unsigned int h = hash_val(key);
 
     int high = ring->num_points;
     Vpoint *vpoint_arr = ring->vpoints;
     int low = 0, mid;
-    unsigned long int mid_val, mid_val_1;
+    unsigned int mid_val, mid_val_1;
     while (true)
     {
         mid = (int) ( (low + high) / 2);
