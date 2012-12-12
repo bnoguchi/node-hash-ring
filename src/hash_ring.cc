@@ -62,7 +62,7 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap() {
         weight_total += node->weight;
     }
 
-    Vpoint *vpoint_list = new Vpoint[num_servers * 160];
+    Vpoint *vpoint_list = new Vpoint[num_servers * 120];
     unsigned int j, k;
     int vpoint_idx = 0;
     for (j = 0; j < num_servers; j++) {
@@ -74,10 +74,10 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap() {
             unsigned char digest[16];
             hash_digest(ss, digest);
             int m;
-            for (m = 0; m < 4; m++) {
+            for (m = 0; m < 3; m++) {
                 vpoint_list[vpoint_idx].point = (digest[3 + m*4] << 24) |
                                                 (digest[2 + m*4] << 16) |
-                                                (digest[1 + m*4] << 8) |
+                                                (digest[1 + m*4] <<  8) |
                                                  digest[m*4];
                 vpoint_list[vpoint_idx].id = node_list[j].id;
                 vpoint_idx++;

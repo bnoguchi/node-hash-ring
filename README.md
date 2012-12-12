@@ -3,6 +3,9 @@
 
 See this [blog post](http://ngchi.wordpress.com/2010/08/23/towards-auto-sharding-in-your-node-js-app/) for more information.
 
+This module produces consistent output with [python-hash_ring==1.2](https://github.com/Doist/hash_ring).
+
+
 ### Installation
 Via npm:
 
@@ -41,3 +44,6 @@ MIT License
 ---
 ### Author
 Brian Noguchi
+
+### Contributor
+Krzysztof Dorosz (compatibility with the python-hash_ring module)
