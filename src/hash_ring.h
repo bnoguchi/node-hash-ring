@@ -3,41 +3,78 @@
 
 #include <node.h>
 #include <node_object_wrap.h>
+#include <string>
+#include <vector>
 
-typedef int (*compfn)(const void*, const void*);
+namespace HashRing
+{
+typedef int (*compfn)(const void *, const void *);
 
-typedef struct {
-    unsigned int point;
-    char* id;
+typedef struct
+{
+  unsigned int point;
+  std::string id;
 } Vpoint;
 
-typedef struct {
-    int num_points;
-    Vpoint *vpoints;
-} Ring;
+class Ring
+{
+public:
+  int num_points;
+  int num_servers;
+  std::vector<Vpoint> vpoints;
+  Ring() : num_points(0), num_servers(0)
+  {
+  }
 
-typedef struct {
-    char* id;
-    int weight;
-} NodeInfo;
+  void setNumServers(int ns)
+  {
+    num_servers = ns;
+    vpoints.resize(ns * 160);
+  }
 
-class HashRing : public node::ObjectWrap {
+  void setNumPoints(int np)
+  {
+    num_points = np;
+  }
 
-    Ring ring;
-
-  public:
-    HashRing(v8::Local<v8::Object> weight_hash);
-    ~HashRing();
-
-    static void Initialize(v8::Handle<v8::Object> target);
-
-    static v8::Handle<v8::Value> New(const v8::Arguments &args);
-    static v8::Handle<v8::Value> GetNode(const v8::Arguments &args);
-
-  private:
-    static void hash_digest(char *in, unsigned char out[16]);
-    static unsigned int hash_val(char *in);
-    static int vpoint_compare(Vpoint *a, Vpoint *b);
+  ~Ring()
+  {
+  }
 };
 
+class NodeInfo
+{
+public:
+  std::string id;
+  int weight;
+  NodeInfo(const char *idStr, int weight) : id(idStr), weight(weight)
+  {
+  }
+  ~NodeInfo()
+  {
+  }
+};
+
+class HashRing : public node::ObjectWrap
+{
+
+  Ring ring;
+
+public:
+  HashRing(v8::Local<v8::Object> weight_hash, bool);
+  ~HashRing();
+
+  static void Initialize(v8::Local<v8::Object> exports);
+
+private:
+  bool useMd5;
+  static void New(const v8::FunctionCallbackInfo<v8::Value> &args);
+  static void GetNode(const v8::FunctionCallbackInfo<v8::Value> &args);
+  //
+  void hash_digest(char *in, int len, unsigned char out[16]);
+  unsigned int hash_val(char *in, int len);
+  static int vpoint_compare(Vpoint *a, Vpoint *b);
+  static v8::Persistent<v8::Function> constructor;
+};
+}
 #endif // HASH_RING_H_
