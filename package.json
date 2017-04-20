@@ -11,7 +11,7 @@
   "license": "MIT",
   "main": "./index.js",
   "scripts": {
-    "test": "expresso test/test_distribution.js",
+    "test": "expresso test/test_distribution.js && node --expose-gc test/test_leak.js",
     "build": "node-gyp configure build"
   },
   "repository": {
