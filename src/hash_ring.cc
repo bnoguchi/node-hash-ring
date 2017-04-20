@@ -59,13 +59,19 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap()
   size_t num_servers = node_names->Length();
 
   NodeInfo *node_list = new NodeInfo[num_servers];
+  size_t max_id_len = 0;
   // Construct the server list based on the weight hash
   for (size_t i = 0; i < num_servers; i++)
   {
     NodeInfo *node = &(node_list[i]);
     node_name = node_names->Get(i)->ToString();
     String::Utf8Value utfVal(node_name);
-    node->id = new char[utfVal.length()];
+    size_t id_len = utfVal.length();
+    node->id = new char[id_len];
+    if (id_len > max_id_len)
+    {
+      max_id_len = id_len;
+    }
     strcpy(node->id, *utfVal);
     node->weight = weight_hash->Get(node_name)->Uint32Value();
     node_list[i] = *node;
@@ -75,13 +81,14 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap()
   Vpoint *vpoint_list = new Vpoint[num_servers * 160];
   size_t j, k;
   int vpoint_idx = 0;
+  max_id_len += 50;
   for (j = 0; j < num_servers; j++)
   {
     float percent = (float)node_list[j].weight / (float)weight_total;
     size_t num_replicas = floorf(percent * 40.0 * (float)num_servers);
     for (k = 0; k < num_replicas; k++)
     {
-      char ss[30];
+      char ss[max_id_len];
       sprintf(ss, "%s-%d", node_list[j].id, (int)k);
       unsigned char digest[16];
       hash_digest(ss, digest);
