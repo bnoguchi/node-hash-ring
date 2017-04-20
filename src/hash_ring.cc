@@ -5,26 +5,14 @@
 #include "md5.h"
 #include "hash_ring.h"
 #include <iostream>
+#include <vector>
 
 namespace HashRing
 {
 
 using namespace std;
-
 using namespace v8;
 using namespace node;
-
-using v8::Context;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::FunctionTemplate;
-using v8::Isolate;
-using v8::Local;
-using v8::Number;
-using v8::Object;
-using v8::Persistent;
-using v8::String;
-using v8::Value;
 
 void HashRing::hash_digest(char *in, unsigned char out[16])
 {
@@ -58,12 +46,12 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap()
   uint32_t weight_total = 0;
   size_t num_servers = node_names->Length();
 
-  NodeInfo *node_list = new NodeInfo[num_servers];
+  vector<NodeInfo> node_list;
+  node_list.reserve(num_servers);
   size_t max_id_len = 0;
   // Construct the server list based on the weight hash
   for (size_t i = 0; i < num_servers; i++)
   {
-    NodeInfo *node = &(node_list[i]);
     node_name = node_names->Get(i)->ToString();
     String::Utf8Value utfVal(node_name);
     size_t id_len = utfVal.length();
@@ -71,10 +59,9 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap()
     {
       max_id_len = id_len;
     }
-    node->id = *utfVal;
-    node->weight = weight_hash->Get(node_name)->Uint32Value();
-    node_list[i] = *node;
-    weight_total += node->weight;
+    NodeInfo node(*utfVal, weight_hash->Get(node_name)->Uint32Value());
+    node_list.push_back(node);
+    weight_total += node.weight;
   }
 
   Vpoint *vpoint_list = new Vpoint[num_servers * 160];
@@ -103,7 +90,6 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap()
       }
     }
   }
-  delete[] node_list;
   qsort((void *)vpoint_list, vpoint_idx, sizeof(Vpoint), (compfn)vpoint_compare);
 
   ring.vpoints = vpoint_list;

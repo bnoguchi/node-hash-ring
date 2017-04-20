@@ -21,11 +21,18 @@ typedef struct
   Vpoint *vpoints;
 } Ring;
 
-typedef struct
+class NodeInfo
 {
+public:
   std::string id;
   int weight;
-} NodeInfo;
+  NodeInfo(const char *idStr, int weight) : id(idStr), weight(weight)
+  {
+  }
+  ~NodeInfo()
+  {
+  }
+};
 
 class HashRing : public node::ObjectWrap
 {
