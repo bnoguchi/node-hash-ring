@@ -4,6 +4,8 @@
 #include <node.h>
 #include <node_object_wrap.h>
 
+namespace HashRing
+{
 typedef int (*compfn)(const void *, const void *);
 
 typedef struct
@@ -33,15 +35,16 @@ public:
   HashRing(v8::Local<v8::Object> weight_hash);
   ~HashRing();
 
-  static void Initialize(v8::Handle<v8::Object> target);
-
-  static v8::Handle<v8::Value> New(const v8::Arguments &args);
-  static v8::Handle<v8::Value> GetNode(const v8::Arguments &args);
+  static void Initialize(v8::Local<v8::Object> exports);
 
 private:
+  static void New(const v8::FunctionCallbackInfo<v8::Value> &args);
+  static void GetNode(const v8::FunctionCallbackInfo<v8::Value> &args);
+  //
   static void hash_digest(char *in, unsigned char out[16]);
   static unsigned int hash_val(char *in);
   static int vpoint_compare(Vpoint *a, Vpoint *b);
+  static v8::Persistent<v8::Function> constructor;
 };
-
+}
 #endif // HASH_RING_H_

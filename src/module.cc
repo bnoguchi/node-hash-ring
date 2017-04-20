@@ -1,9 +1,16 @@
 #include <node.h>
 #include "hash_ring.h"
 
-extern "C" void
-init(v8::Handle<v8::Object> target)
+namespace HashRing
 {
-  v8::HandleScope scope;
-  HashRing::Initialize(target);
+
+using v8::Local;
+using v8::Object;
+
+void InitAll(Local<Object> exports)
+{
+  HashRing::Initialize(exports);
+}
+
+NODE_MODULE(hash_ring, InitAll)
 }

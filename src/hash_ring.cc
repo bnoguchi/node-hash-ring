@@ -5,10 +5,26 @@
 #include "md5.h"
 #include "hash_ring.h"
 #include <iostream>
+
+namespace HashRing
+{
+
 using namespace std;
 
 using namespace v8;
 using namespace node;
+
+using v8::Context;
+using v8::Function;
+using v8::FunctionCallbackInfo;
+using v8::FunctionTemplate;
+using v8::Isolate;
+using v8::Local;
+using v8::Number;
+using v8::Object;
+using v8::Persistent;
+using v8::String;
+using v8::Value;
 
 void HashRing::hash_digest(char *in, unsigned char out[16])
 {
@@ -33,28 +49,18 @@ int HashRing::vpoint_compare(Vpoint *a, Vpoint *b)
   return (a->point < b->point) ? -1 : ((a->point > b->point) ? 1 : 0);
 }
 
-void HashRing::Initialize(Handle<Object> target)
-{
-  HandleScope scope;
-
-  Local<FunctionTemplate> t = FunctionTemplate::New(New);
-  t->InstanceTemplate()->SetInternalFieldCount(1);
-
-  NODE_SET_PROTOTYPE_METHOD(t, "getNode", GetNode);
-
-  target->Set(String::NewSymbol("HashRing"), t->GetFunction());
-}
+Persistent<Function> HashRing::constructor;
 
 HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap()
 {
   Local<Array> node_names = weight_hash->GetPropertyNames();
   Local<String> node_name;
-  uint32_t weight, weight_total = 0;
-  unsigned int num_servers = node_names->Length();
+  uint32_t weight_total = 0;
+  size_t num_servers = node_names->Length();
 
   NodeInfo *node_list = new NodeInfo[num_servers];
   // Construct the server list based on the weight hash
-  for (unsigned int i = 0; i < num_servers; i++)
+  for (size_t i = 0; i < num_servers; i++)
   {
     NodeInfo *node = &(node_list[i]);
     node_name = node_names->Get(i)->ToString();
@@ -67,16 +73,16 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap()
   }
 
   Vpoint *vpoint_list = new Vpoint[num_servers * 160];
-  unsigned int j, k;
+  size_t j, k;
   int vpoint_idx = 0;
   for (j = 0; j < num_servers; j++)
   {
     float percent = (float)node_list[j].weight / (float)weight_total;
-    unsigned int num_replicas = floorf(percent * 40.0 * (float)num_servers);
+    size_t num_replicas = floorf(percent * 40.0 * (float)num_servers);
     for (k = 0; k < num_replicas; k++)
     {
       char ss[30];
-      sprintf(ss, "%s-%d", node_list[j].id, k);
+      sprintf(ss, "%s-%d", node_list[j].id, (int)k);
       unsigned char digest[16];
       hash_digest(ss, digest);
       int m;
@@ -103,55 +109,88 @@ HashRing::~HashRing()
   delete[] ring.vpoints;
 }
 
-Handle<Value> HashRing::New(const Arguments &args)
+void HashRing::Initialize(Local<Object> exports)
 {
-  HandleScope scope;
+  Isolate *isolate = exports->GetIsolate();
 
-  if (args[0]->IsObject())
+  Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
+  tpl->SetClassName(String::NewFromUtf8(isolate, "HashRing"));
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+  NODE_SET_PROTOTYPE_METHOD(tpl, "getNode", GetNode);
+
+  constructor.Reset(isolate, tpl->GetFunction());
+
+  exports->Set(String::NewFromUtf8(isolate, "HashRing"),
+               tpl->GetFunction());
+}
+
+void HashRing::New(const FunctionCallbackInfo<Value> &args)
+{
+  Isolate *isolate = args.GetIsolate();
+
+  if (!args.IsConstructCall())
+  {
+    isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Please call new HashRing(nodes)")));
+  }
+  else if (args[0]->IsObject())
   {
     Local<Object> weight_hash = args[0]->ToObject();
     HashRing *hash_ring = new HashRing(weight_hash);
-    hash_ring->Wrap(args.This());
-    return args.This();
+    hash_ring->Wrap(args.Holder());
+    args.GetReturnValue().Set(args.Holder());
   }
   else
   {
-    return ThrowException(Exception::TypeError(String::New("Bad argument")));
+    isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "HashRing Bad argument")));
   }
 }
 
-Handle<Value> HashRing::GetNode(const Arguments &args)
+void HashRing::GetNode(const FunctionCallbackInfo<Value> &args)
 {
-  HandleScope scope;
+  Isolate *isolate = args.GetIsolate();
 
-  HashRing *hash_ring = ObjectWrap::Unwrap<HashRing>(args.This());
+  HashRing *hash_ring = ObjectWrap::Unwrap<HashRing>(args.Holder());
   Ring *ring = &(hash_ring->ring);
 
   Local<String> str = args[0]->ToString();
   String::Utf8Value utfVal(str);
   char *key = *utfVal;
-  unsigned int h = hash_val(key);
+  size_t h = hash_val(key);
 
   int high = ring->num_points;
   Vpoint *vpoint_arr = ring->vpoints;
   int low = 0, mid;
-  unsigned int mid_val, mid_val_1;
+  size_t mid_val, mid_val_1;
   while (true)
   {
     mid = (int)((low + high) / 2);
     if (mid == ring->num_points)
     {
-      return String::New(vpoint_arr[0].id); // We're at the end. Go to 0
+      args.GetReturnValue().Set(String::NewFromUtf8(isolate, vpoint_arr[0].id)); // We're at the end. Go to 0
+      return;
     }
     mid_val = vpoint_arr[mid].point;
     mid_val_1 = mid == 0 ? 0 : vpoint_arr[mid - 1].point;
     if (h <= mid_val && h > mid_val_1)
-      return String::New(vpoint_arr[mid].id);
+    {
+      args.GetReturnValue().Set(String::NewFromUtf8(isolate, vpoint_arr[mid].id));
+      return;
+    }
     if (mid_val < h)
+    {
       low = mid + 1;
+    }
     else
+    {
       high = mid - 1;
+    }
+
     if (low > high)
-      return String::New(vpoint_arr[0].id);
+    {
+      args.GetReturnValue().Set(String::NewFromUtf8(isolate, vpoint_arr[0].id));
+      return;
+    }
   }
+}
 }
