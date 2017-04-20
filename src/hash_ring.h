@@ -3,6 +3,7 @@
 
 #include <node.h>
 #include <node_object_wrap.h>
+#include <string>
 
 namespace HashRing
 {
@@ -11,7 +12,7 @@ typedef int (*compfn)(const void *, const void *);
 typedef struct
 {
   unsigned int point;
-  char *id;
+  std::string id;
 } Vpoint;
 
 typedef struct
@@ -22,7 +23,7 @@ typedef struct
 
 typedef struct
 {
-  char *id;
+  std::string id;
   int weight;
 } NodeInfo;
 
