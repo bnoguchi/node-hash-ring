@@ -1,24 +1,32 @@
-var HashRing = require("../index");
+"use strict";
 
-var crypto = require("crypto");
+const assert = require("assert");
+const HashRing = require("../index");
 
-var nodes = {
+const nodes = {
   "127.0.0.1:8080": 1,
   "127.0.0.2:8080": 1,
-  "127.0.0.3:8080": 1
+  "127.0.0.3:8080": 1,
+  "127.0.0.4:8080": 1,
+  "127.0.0.5:8080": 1
 };
 
-var ring = new HashRing(nodes);
+console.log("Running test leak - be patient, it will take 1-2 minutes depending on your machine speed\n");
 
 const memUseBefore = process.memoryUsage();
 console.log("memory usage before", memUseBefore);
 
-var time = (new Date()).getTime();
-for (var i = 0; i < 10000000; i++) {
+const beginTime = Date.now();
+
+for (var i = 0; i < 500000; i++) {
+  const ring = new HashRing(nodes);
   ring.getNode('a' + i + 'b' + i);
 }
 
-console.log('Time: ' + ((new Date()).getTime() - time) / 100 + ' s');
+const endTime = Date.now();
+const elapsedTime = endTime - beginTime;
+
+console.log("Time", (elapsedTime / 1000) + "s");
 
 global.gc();
 
@@ -26,5 +34,8 @@ setTimeout(() => {
   const memUseAfter = process.memoryUsage();
   console.log("memory usage after", memUseAfter);
 
-  console.log("heapUsed change", memUseAfter.heapUsed - memUseBefore.heapUsed);
+  const changed = memUseAfter.heapUsed - memUseBefore.heapUsed;
+  console.log("heapUsed change", changed + " bytes; ", Math.ceil(changed / 1000) + "KB");
+  assert(changed < 100000, "heapUsed change larger than 100K");
+
 }, 100);
