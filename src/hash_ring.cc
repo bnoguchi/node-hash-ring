@@ -150,7 +150,7 @@ void HashRing::GetNode(const FunctionCallbackInfo<Value> &args)
   size_t h = hash_val(key);
 
   int high = ring.num_points;
-  vector<Vpoint> &vpoints = ring.vpoints;
+  const vector<Vpoint> &vpoints = ring.vpoints;
   int low = 0, mid;
   size_t mid_val, mid_val_1;
   while (true)
