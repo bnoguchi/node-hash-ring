@@ -64,7 +64,8 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap()
     weight_total += node.weight;
   }
 
-  Vpoint *vpoint_list = new Vpoint[num_servers * 160];
+  ring.setNumServers(num_servers);
+  vector<Vpoint> &vpoints = ring.vpoints;
   size_t j, k;
   int vpoint_idx = 0;
   max_id_len += 50;
@@ -81,24 +82,22 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap()
       int m;
       for (m = 0; m < 4; m++)
       {
-        vpoint_list[vpoint_idx].point = (digest[3 + m * 4] << 24) |
-                                        (digest[2 + m * 4] << 16) |
-                                        (digest[1 + m * 4] << 8) |
-                                        digest[m * 4];
-        vpoint_list[vpoint_idx].id = node_list[j].id;
+        vpoints[vpoint_idx].point = (digest[3 + m * 4] << 24) |
+                                    (digest[2 + m * 4] << 16) |
+                                    (digest[1 + m * 4] << 8) |
+                                    digest[m * 4];
+        vpoints[vpoint_idx].id = node_list[j].id;
         vpoint_idx++;
       }
     }
   }
-  qsort((void *)vpoint_list, vpoint_idx, sizeof(Vpoint), (compfn)vpoint_compare);
+  qsort((void *)&vpoints[0], vpoint_idx, sizeof(Vpoint), (compfn)vpoint_compare);
 
-  ring.vpoints = vpoint_list;
-  ring.num_points = vpoint_idx;
+  ring.setNumPoints(vpoint_idx);
 }
 
 HashRing::~HashRing()
 {
-  delete[] ring.vpoints;
 }
 
 void HashRing::Initialize(Local<Object> exports)
@@ -143,30 +142,30 @@ void HashRing::GetNode(const FunctionCallbackInfo<Value> &args)
   Isolate *isolate = args.GetIsolate();
 
   HashRing *hash_ring = ObjectWrap::Unwrap<HashRing>(args.Holder());
-  Ring *ring = &(hash_ring->ring);
+  Ring &ring = hash_ring->ring;
 
   Local<String> str = args[0]->ToString();
   String::Utf8Value utfVal(str);
   char *key = *utfVal;
   size_t h = hash_val(key);
 
-  int high = ring->num_points;
-  Vpoint *vpoint_arr = ring->vpoints;
+  int high = ring.num_points;
+  vector<Vpoint> &vpoints = ring.vpoints;
   int low = 0, mid;
   size_t mid_val, mid_val_1;
   while (true)
   {
     mid = (int)((low + high) / 2);
-    if (mid == ring->num_points)
+    if (mid == ring.num_points)
     {
-      args.GetReturnValue().Set(String::NewFromUtf8(isolate, vpoint_arr[0].id.c_str())); // We're at the end. Go to 0
+      args.GetReturnValue().Set(String::NewFromUtf8(isolate, vpoints[0].id.c_str())); // We're at the end. Go to 0
       return;
     }
-    mid_val = vpoint_arr[mid].point;
-    mid_val_1 = mid == 0 ? 0 : vpoint_arr[mid - 1].point;
+    mid_val = vpoints[mid].point;
+    mid_val_1 = mid == 0 ? 0 : vpoints[mid - 1].point;
     if (h <= mid_val && h > mid_val_1)
     {
-      args.GetReturnValue().Set(String::NewFromUtf8(isolate, vpoint_arr[mid].id.c_str()));
+      args.GetReturnValue().Set(String::NewFromUtf8(isolate, vpoints[mid].id.c_str()));
       return;
     }
     if (mid_val < h)
@@ -180,7 +179,7 @@ void HashRing::GetNode(const FunctionCallbackInfo<Value> &args)
 
     if (low > high)
     {
-      args.GetReturnValue().Set(String::NewFromUtf8(isolate, vpoint_arr[0].id.c_str()));
+      args.GetReturnValue().Set(String::NewFromUtf8(isolate, vpoints[0].id.c_str()));
       return;
     }
   }

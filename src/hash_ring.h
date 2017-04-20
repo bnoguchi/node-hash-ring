@@ -4,6 +4,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include <string>
+#include <vector>
 
 namespace HashRing
 {
@@ -15,11 +16,31 @@ typedef struct
   std::string id;
 } Vpoint;
 
-typedef struct
+class Ring
 {
+public:
   int num_points;
-  Vpoint *vpoints;
-} Ring;
+  int num_servers;
+  std::vector<Vpoint> vpoints;
+  Ring() : num_points(0), num_servers(0)
+  {
+  }
+
+  void setNumServers(int ns)
+  {
+    num_servers = ns;
+    vpoints.resize(ns * 160);
+  }
+
+  void setNumPoints(int np)
+  {
+    num_points = np;
+  }
+
+  ~Ring()
+  {
+  }
+};
 
 class NodeInfo
 {
