@@ -70,8 +70,8 @@ private:
   static void New(const v8::FunctionCallbackInfo<v8::Value> &args);
   static void GetNode(const v8::FunctionCallbackInfo<v8::Value> &args);
   //
-  static void hash_digest(char *in, unsigned char out[16]);
-  static unsigned int hash_val(char *in);
+  static void hash_digest(char *in, int len, unsigned char out[16]);
+  static unsigned int hash_val(char *in, int len);
   static int vpoint_compare(Vpoint *a, Vpoint *b);
   static v8::Persistent<v8::Function> constructor;
 };

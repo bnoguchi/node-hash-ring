@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>   // For floorf
-#include <string.h> // For strlen
+#include <math.h> // For floorf
 #include "md5.h"
 #include "hash_ring.h"
 #include <iostream>
@@ -14,18 +13,18 @@ using namespace std;
 using namespace v8;
 using namespace node;
 
-void HashRing::hash_digest(char *in, unsigned char out[16])
+void HashRing::hash_digest(char *in, int len, unsigned char out[16])
 {
   md5_state_t md5_state;
   md5_init(&md5_state);
-  md5_append(&md5_state, (unsigned char *)in, strlen(in));
+  md5_append(&md5_state, (unsigned char *)in, len);
   md5_finish(&md5_state, out);
 };
 
-unsigned int HashRing::hash_val(char *in)
+unsigned int HashRing::hash_val(char *in, int len)
 {
   unsigned char digest[16];
-  hash_digest(in, digest);
+  hash_digest(in, len, digest);
   return (unsigned int)((digest[3] << 24) |
                         (digest[2] << 16) |
                         (digest[1] << 8) |
@@ -76,9 +75,9 @@ HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap()
     for (k = 0; k < num_replicas; k++)
     {
       char ss[max_id_len];
-      sprintf(ss, "%s-%d", node_list[j].id.c_str(), (int)k);
+      int ss_len = sprintf(ss, "%s-%d", node_list[j].id.c_str(), (int)k);
       unsigned char digest[16];
-      hash_digest(ss, digest);
+      hash_digest(ss, ss_len, digest);
       int m;
       for (m = 0; m < 4; m++)
       {
@@ -147,7 +146,7 @@ void HashRing::GetNode(const FunctionCallbackInfo<Value> &args)
   Local<String> str = args[0]->ToString();
   String::Utf8Value utfVal(str);
   char *key = *utfVal;
-  size_t h = hash_val(key);
+  size_t h = hash_val(key, utfVal.length());
 
   int high = ring.num_points;
   const vector<Vpoint> &vpoints = ring.vpoints;
