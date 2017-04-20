@@ -19,7 +19,7 @@ console.log("memory usage before", memUseBefore);
 const beginTime = Date.now();
 
 for (var i = 0; i < 500000; i++) {
-  const ring = new HashRing(nodes);
+  const ring = new HashRing(nodes, "murmur");
   ring.getNode('a' + i + 'b' + i);
 }
 

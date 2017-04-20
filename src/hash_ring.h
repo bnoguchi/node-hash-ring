@@ -61,17 +61,18 @@ class HashRing : public node::ObjectWrap
   Ring ring;
 
 public:
-  HashRing(v8::Local<v8::Object> weight_hash);
+  HashRing(v8::Local<v8::Object> weight_hash, bool);
   ~HashRing();
 
   static void Initialize(v8::Local<v8::Object> exports);
 
 private:
+  bool useMd5;
   static void New(const v8::FunctionCallbackInfo<v8::Value> &args);
   static void GetNode(const v8::FunctionCallbackInfo<v8::Value> &args);
   //
-  static void hash_digest(char *in, int len, unsigned char out[16]);
-  static unsigned int hash_val(char *in, int len);
+  void hash_digest(char *in, int len, unsigned char out[16]);
+  unsigned int hash_val(char *in, int len);
   static int vpoint_compare(Vpoint *a, Vpoint *b);
   static v8::Persistent<v8::Function> constructor;
 };

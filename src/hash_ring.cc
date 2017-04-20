@@ -5,6 +5,7 @@
 #include "hash_ring.h"
 #include <iostream>
 #include <vector>
+#include "MurmurHash3.h"
 
 namespace HashRing
 {
@@ -13,13 +14,32 @@ using namespace std;
 using namespace v8;
 using namespace node;
 
+void MurmurHash(const void *key, int len, uint32_t seed, unsigned char out[16])
+{
+  if (sizeof(size_t) == 8) // 64-bit
+  {
+    MurmurHash3_x64_128(key, len, seed, out);
+  }
+  else
+  {
+    MurmurHash3_x86_128(key, len, seed, out);
+  }
+}
+
 void HashRing::hash_digest(char *in, int len, unsigned char out[16])
 {
-  md5_state_t md5_state;
-  md5_init(&md5_state);
-  md5_append(&md5_state, (unsigned char *)in, len);
-  md5_finish(&md5_state, out);
-};
+  if (useMd5)
+  {
+    md5_state_t md5_state;
+    md5_init(&md5_state);
+    md5_append(&md5_state, (unsigned char *)in, len);
+    md5_finish(&md5_state, out);
+  }
+  else
+  {
+    MurmurHash(in, len, 0, out);
+  }
+}
 
 unsigned int HashRing::hash_val(char *in, int len)
 {
@@ -38,7 +58,7 @@ int HashRing::vpoint_compare(Vpoint *a, Vpoint *b)
 
 Persistent<Function> HashRing::constructor;
 
-HashRing::HashRing(Local<Object> weight_hash) : ObjectWrap()
+HashRing::HashRing(Local<Object> weight_hash, bool useMd5) : ObjectWrap(), useMd5(useMd5)
 {
   Local<Array> node_names = weight_hash->GetPropertyNames();
   Local<String> node_name;
@@ -126,7 +146,14 @@ void HashRing::New(const FunctionCallbackInfo<Value> &args)
   else if (args[0]->IsObject())
   {
     Local<Object> weight_hash = args[0]->ToObject();
-    HashRing *hash_ring = new HashRing(weight_hash);
+    bool useMd5 = true;
+    if (!args[1]->IsUndefined())
+    {
+      String::Utf8Value utfVal(args[1]->ToString());
+      string hasher(*utfVal);
+      useMd5 = hasher != "murmur";
+    }
+    HashRing *hash_ring = new HashRing(weight_hash, useMd5);
     hash_ring->Wrap(args.Holder());
     args.GetReturnValue().Set(args.Holder());
   }
@@ -146,7 +173,7 @@ void HashRing::GetNode(const FunctionCallbackInfo<Value> &args)
   Local<String> str = args[0]->ToString();
   String::Utf8Value utfVal(str);
   char *key = *utfVal;
-  size_t h = hash_val(key, utfVal.length());
+  size_t h = hash_ring->hash_val(key, utfVal.length());
 
   int high = ring.num_points;
   const vector<Vpoint> &vpoints = ring.vpoints;
